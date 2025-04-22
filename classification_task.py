@@ -49,8 +49,8 @@ def main():
     }
 
     trainner_parameters = {
-        "max_epochs": 400,
-        "early_stop_limit": 80,
+        "max_epochs": 600,
+        "early_stop_limit": 150,
         "learning_rate": 1e-3,
         "batch_size": 246,
         "device": 0,
