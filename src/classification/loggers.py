@@ -171,10 +171,10 @@ class WithinLogger:
 
     @staticmethod
     def _compile_result_summary(data):
-        accuracy = data["accuracy"]
-        precision = data['macro avg']["precision"]
-        recall = data['macro avg']['recall']
-        f1 = data['macro avg']['f1-score']
+        accuracy = data[2]["accuracy"]
+        precision = data[2]['macro avg']["precision"]
+        recall = data[2]['macro avg']['recall']
+        f1 = data[2]['macro avg']['f1-score']
         return accuracy, precision, recall, f1
 
 
