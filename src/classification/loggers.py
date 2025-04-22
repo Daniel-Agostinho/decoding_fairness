@@ -131,10 +131,19 @@ class WithinLogger:
 
         return model_path
 
-    def log_test(self, model, info):
+    def log_test(self, model, info, data, labels):
 
         # Save test info
         self._save_info(info, target='test')
+
+        # Save fold test data
+
+        data_file = os.path.join(
+            self.outer_fold_folder,
+            "test_data.npz",
+        )
+
+        np.savez_compressed(data_file, data=data, labels=labels)
 
         # Save used model
         model_path = os.path.join(

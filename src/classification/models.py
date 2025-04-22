@@ -72,7 +72,7 @@ def evaluate_models_performance(model, test_dataset, logger, target_labels=None,
         true_labels = torch.argmax(labels, dim=1).detach().cpu().numpy()
 
     test_info = _evaluation(prediction, true_labels, target_labels, target_labels_names)
-    logger.log_test(model, test_info)
+    logger.log_test(model, test_info, data, labels)
 
 
 def _evaluation(prediction, true_labels, data_labels, target_labels_names):
