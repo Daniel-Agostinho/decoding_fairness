@@ -21,7 +21,7 @@ class EEGNet(nn.Module):
         self.num_classes = n_classes
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=f1, kernel_size=(1, 64)),
+            nn.Conv2d(in_channels=1, out_channels=f1, kernel_size=(1, 250)),
             nn.BatchNorm2d(num_features=f1, momentum=0.01, affine=True, eps=1e-3),
             nn.Conv2d(in_channels=f1, out_channels=f1 * d, groups=f1, kernel_size=(eeg_channels, 1)),
             nn.BatchNorm2d(num_features=f1 * d, momentum=0.01, affine=True, eps=1e-3),
