@@ -86,14 +86,15 @@ def run_within_subject_experiment(experiment_identifier, data_iterator, network_
     for outer_fold, subject, test_dataset, train_generator in data_iterator:
 
         logger = WithinLogger(experiment_identifier, subject, outer_fold)
-
-        model = EEGNet(**network_parameters)
-
         best_cross_fold = -1
         best_cross_loss = 1000
 
         # Train
         for inner_fold, train, valid in train_generator:
+
+            # Create new model
+            model = EEGNet(**network_parameters)
+
             logger.set_inner_fold_folder(inner_fold)
             trainner = ModelTrainner(model=model, train_dataset=train, valid_dataset=valid, **trainner_parameters)
 
