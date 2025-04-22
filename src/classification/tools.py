@@ -34,10 +34,12 @@ def _load_subject_data(fpath, target):
     return data, labels
 
 
-def _build_dataset_for_pytorch(subjects=None, subjects_files=None, data=None, labels=None, normalize_pre_signal=False):
+def _build_dataset_for_pytorch(subjects=None, subjects_files=None, data=None, labels=None, normalize_pre_signal=False,
+                               target=None):
 
-    if subjects and subjects_files:
-        pass
+    if subjects is not None:
+        assert subjects_files is not None
+        data, labels = _build_multi_subject_dataset(subjects, subjects_files, target)
 
     pre_stimuli = data[:, :, :PRE_STIMULI_PERIOD_IN_POINTS]
     stimuli_data = data[:, :, PRE_STIMULI_PERIOD_IN_POINTS:]
@@ -49,6 +51,24 @@ def _build_dataset_for_pytorch(subjects=None, subjects_files=None, data=None, la
 
     dataset_data, dataset_labels = __data_to_pytorch_format(standardized_stimuli_data, labels)
     return SubjectEEGDataset(dataset_data, dataset_labels)
+
+
+def _build_multi_subject_dataset(subjects, subjects_files, target):
+
+    data = None
+    labels = None
+
+    for subject in subjects:
+        subject_data, subject_labels = _load_subject_data(subjects_files[subject], target)
+
+        if data is None:
+            data = subject_data
+            labels = subject_labels
+        else:
+            data = np.concatenate((data, subject_data), axis=0)
+            labels = np.concatenate((labels, subject_labels), axis=0)
+
+    return data, labels
 
 
 def __normalized_for_pre_stimuli_mean(data, pre_stimuli_data):

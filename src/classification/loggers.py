@@ -12,26 +12,21 @@ import torch
 from .tools import _make_dir
 
 
-class WithinLogger:
+class ClassificationLogger:
 
-    def __init__(self, experiment_identifier, subject_id, outer_fold):
-        self.subject = subject_id
-        self.outer_fold = outer_fold
+    def __init__(self, experiment_identifier, outer_fold):
 
-        self.subject_folder = os.path.join(
+        self.experiment_folder = os.path.join(
             "Results",
-            "Within_Subject",
             experiment_identifier,
-            f"{self.subject}",
         )
 
         self.outer_fold_folder = os.path.join(
-            self.subject_folder,
-            f"Fold_{self.outer_fold}",
+            self.experiment_folder,
+            f"Fold_{outer_fold}",
         )
 
-        self.inner_fold_folder =None
-        _make_dir(self.outer_fold_folder)
+        self.inner_fold_folder = None
 
     def set_inner_fold_folder(self, inner_fold_folder):
 
@@ -157,7 +152,7 @@ class WithinLogger:
         outer_fold_summary = self._compile_result_summary(info)
 
         summary_file = os.path.join(
-            self.subject_folder,
+            self.experiment_folder,
             "test_summary.csv",
         )
 
@@ -176,6 +171,59 @@ class WithinLogger:
         recall = data[2]['macro avg']['recall']
         f1 = data[2]['macro avg']['f1-score']
         return accuracy, precision, recall, f1
+
+
+class WithinLogger(ClassificationLogger):
+
+    def __init__(self, experiment_identifier, subject_id, outer_fold):
+        super().__init__(experiment_identifier, outer_fold)
+        self.subject = subject_id
+        self.outer_fold = outer_fold
+
+        self.experiment_folder = os.path.join(
+            "Results",
+            experiment_identifier,
+            f"{self.subject}",
+        )
+
+        self.outer_fold_folder = os.path.join(
+            self.experiment_folder,
+            f"Fold_{self.outer_fold}",
+        )
+
+        self.inner_fold_folder =None
+        _make_dir(self.outer_fold_folder)
+
+
+class BetweenLogger(ClassificationLogger):
+
+    def __init__(self, experiment_identifier, outer_fold):
+
+        super().__init__(experiment_identifier, outer_fold)
+
+        self.experiment_folder = os.path.join(
+            "Results",
+            experiment_identifier,
+        )
+
+        self.outer_fold_folder = os.path.join(
+            self.experiment_folder,
+            f"Fold_{outer_fold}",
+        )
+
+        self.inner_fold_folder = None
+        _make_dir(self.outer_fold_folder)
+
+    def save_subjects_id(self, subjects):
+        file_fpath = os.path.join(
+            self.outer_fold_folder,
+            "subjects.txt",
+        )
+
+        with open(file_fpath, "a") as file:
+            for subject in subjects:
+                file.write(f"{subject}\n")
+
 
 
 if __name__ == '__main__':

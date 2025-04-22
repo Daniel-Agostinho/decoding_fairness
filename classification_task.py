@@ -3,7 +3,7 @@ import torch
 
 # My imports
 from src.classification.iterators import select_iterator
-from src.classification.loggers import WithinLogger
+from src.classification.loggers import WithinLogger, BetweenLogger
 from src.classification.models import EEGNet, evaluate_models_performance
 from src.classification.trainners import ModelTrainner
 
@@ -30,13 +30,13 @@ TARGET_NAMES = {
 def main():
 
     experiment_parameters = {
-        'approach': "Within Subject",
+        'approach': "Between Subject",
         'dataset': "Complete",
         'outer_k_folds': 10,
         'inner_k_folds': 10,
         'target': 0,
         'normalize_pre_signal': False,
-        'identifier': "WS_4C_NN",
+        'identifier': "BS_4C_NN",
     }
 
     network_parameters = {
@@ -53,7 +53,7 @@ def main():
         "early_stop_limit": 150,
         "learning_rate": 1e-3,
         "batch_size": 246,
-        "device": 0,
+        "device": 1,
         "target_labels": LABELS[experiment_parameters['target']],
         "target_labels_names": TARGET_NAMES[experiment_parameters['target']],
     }
@@ -78,6 +78,10 @@ def run_experiment(experiment_parameters, network_parameters, trainner_parameter
     if type_of_experiment == "Within Subject":
         run_within_subject_experiment(experiment_identifier, data_iterator, network_parameters, trainner_parameters,
                                       evaluation_parameters)
+
+    else:
+        run_between_subjects_experiment(experiment_identifier, data_iterator, network_parameters, trainner_parameters,
+                                        evaluation_parameters)
 
 
 def run_within_subject_experiment(experiment_identifier, data_iterator, network_parameters, trainner_parameters,
@@ -112,6 +116,41 @@ def run_within_subject_experiment(experiment_identifier, data_iterator, network_
 
         evaluate_models_performance(test_model, test_dataset, logger, **evaluation_parameters)
 
+
+
+def run_between_subjects_experiment(experiment_identifier, data_iterator, network_parameters,
+                                    trainner_parameters, evaluation_parameters):
+
+    for outer_fold, subjects, test_dataset, train_generator in data_iterator:
+
+        logger = BetweenLogger(experiment_identifier, outer_fold)
+        best_cross_fold = -1
+        best_cross_loss = 1000
+
+        logger.save_subjects_id(subjects)
+
+        # Train
+        for inner_fold, train, valid in train_generator:
+
+            # Initialize a new model
+            model = EEGNet(**network_parameters)
+
+            logger.set_inner_fold_folder(inner_fold)
+
+            trainner = ModelTrainner(model=model, train_dataset=train, valid_dataset=valid, **trainner_parameters)
+            inner_fold_loss = trainner.train(logger)
+
+            if inner_fold_loss < best_cross_loss:
+                best_cross_loss = inner_fold_loss
+                best_cross_fold = inner_fold
+
+        # Test
+        best_model_fpath = logger.get_best_model(best_cross_fold)
+
+        test_model = EEGNet(**network_parameters)
+        test_model.load_state_dict(torch.load(best_model_fpath))
+
+        evaluate_models_performance(test_model, test_dataset, logger, **evaluation_parameters)
 
 
 
