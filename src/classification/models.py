@@ -78,9 +78,10 @@ def evaluate_models_performance(model, test_dataset, logger, target_labels=None,
 def _evaluation(prediction, true_labels, data_labels, target_labels_names):
 
     cm = confusion_matrix(true_labels, prediction)
-    summary = classification_report(true_labels, prediction, labels=data_labels, target_names=target_labels_names)
+    summary = classification_report(true_labels, prediction, labels=data_labels, target_names=target_labels_names,
+                                    zero_division=0)
     summary_data = classification_report(true_labels, prediction, labels=data_labels, target_names=target_labels_names,
-                                         output_dict=True)
+                                         output_dict=True, zero_division=0)
     disp = ConfusionMatrixDisplay(cm, display_labels=target_labels_names)
     return cm, summary, summary_data, disp
 
